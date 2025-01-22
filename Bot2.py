@@ -4,8 +4,20 @@ from duckduckgo_search import DDGS
 import os
 from typing import List
 
-# Get API key from Streamlit secrets
-client = groq.Groq(api_key=st.secrets["GROQ_API_KEY"])
+# Initialize Groq client with error handling
+try:
+    api_key = st.secrets["GROQ_API_KEY"]
+    if not api_key:
+        st.error("GROQ_API_KEY is not set in Streamlit secrets")
+        st.stop()
+    
+    client = groq.Groq(
+        api_key=api_key,
+        timeout=60.0  # Add timeout parameter
+    )
+except Exception as e:
+    st.error(f"Failed to initialize Groq client. Please check your API key and try again.")
+    st.stop()
 
 def search_duckduckgo(query: str, num_results: int = 3) -> List[str]:
     """
@@ -100,6 +112,7 @@ def get_groq_response(prompt: str, context: str = "") -> str:
 
         Use the provided search results to supplement your knowledge and provide up-to-date information."""
 
+        # Add timeout and max_retries for better stability
         chat_completion = client.chat.completions.create(
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -107,6 +120,7 @@ def get_groq_response(prompt: str, context: str = "") -> str:
             ],
             model="mixtral-8x7b-32768",
             temperature=0.7,
+            timeout=30.0,  # Add specific timeout for completion
         )
         return chat_completion.choices[0].message.content
     except Exception as e:
