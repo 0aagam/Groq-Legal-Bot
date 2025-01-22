@@ -13,9 +13,11 @@ if "client" not in st.session_state:
 # API Key input section
 with st.sidebar:
     st.markdown("### API Key Configuration")
-    api_key_input = st.text_input("Enter your Groq API Key:", 
-                                 type="password",
-                                 help="Enter your Groq API key. It should start with 'gsk_'")
+    api_key_input = st.text_input(
+        "Enter your Groq API Key:", 
+        type="password",
+        help="Enter your Groq API key. It should start with 'gsk_'"
+    )
     
     if api_key_input:
         if api_key_input.startswith("gsk_"):
@@ -26,15 +28,27 @@ with st.sidebar:
                         api_key=api_key_input,
                         timeout=60.0
                     )
+                    # Verify the API key works by making a small test request
+                    test_response = client.chat.completions.create(
+                        messages=[{"role": "user", "content": "test"}],
+                        model="mixtral-8x7b-32768",
+                        temperature=0.7,
+                        max_tokens=10
+                    )
                     st.session_state.client = client
                     st.session_state.api_key = api_key_input
                     st.success("API key successfully configured!")
+                except groq.error.AuthenticationError:
+                    st.error("Authentication failed. Please check your API key.")
+                    st.session_state.client = None
+                    st.session_state.api_key = None
                 except Exception as e:
-                    st.error("Invalid API key. Please check and try again.")
+                    st.error(f"Error: {str(e)}")
                     st.session_state.client = None
                     st.session_state.api_key = None
         else:
             st.error("API key should start with 'gsk_'. Please check your key.")
+            st.info("You can find your API key in your Groq dashboard: https://console.groq.com/keys")
 
 # Only show the main interface if API key is configured
 if st.session_state.client:
