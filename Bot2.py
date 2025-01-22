@@ -3,6 +3,11 @@ import groq
 from duckduckgo_search import DDGS
 import os
 from typing import List
+from dotenv import load_dotenv
+from groq.types import ChatCompletion
+
+# Load environment variables
+load_dotenv()
 
 # Initialize session state for API key
 if "api_key" not in st.session_state:
@@ -24,9 +29,7 @@ with st.sidebar:
             if api_key_input != st.session_state.api_key:
                 try:
                     # Test the API key by initializing the client
-                    client = groq.Groq(
-                        api_key=api_key_input
-                    )
+                    client = groq.Client(api_key=api_key_input)
                     # Verify the API key works by making a small test request
                     test_response = client.chat.completions.create(
                         messages=[{"role": "user", "content": "test"}],
@@ -63,96 +66,28 @@ if st.session_state.client:
 
     def get_groq_response(prompt: str, context: str = "") -> str:
         """
-        Get response from Groq API with Indian legal expertise
+        Get response from Groq API with Indian legal context
         """
         try:
-            system_prompt = """You are an experienced Indian legal advocate with extensive knowledge of Indian law and jurisprudence. 
-            Your expertise includes:
+            system_prompt = """You are an Indian legal assistant with expertise in Indian law. 
+            Your role is to:
+            1. Provide accurate information about Indian laws, regulations, and legal procedures
+            2. Explain legal concepts in simple terms
+            3. Reference relevant sections of Indian laws and court judgments when applicable
+            4. Clarify that you're providing general information, not legal advice
+            5. Suggest consulting a qualified lawyer for specific legal matters
+            
+            Use the provided search results to answer questions accurately."""
 
-            1. Constitutional Law:
-               - Fundamental Rights (Articles 12-35)
-               - Directive Principles
-               - Constitutional Remedies
-               - Supreme Court and High Court jurisdiction
-
-            2. Criminal Law:
-               - Indian Penal Code (IPC)
-               - Criminal Procedure Code (CrPC)
-               - Evidence Act
-               - Criminal jurisprudence
-
-            3. Civil Law:
-               - Civil Procedure Code (CPC)
-               - Contract Act
-               - Transfer of Property Act
-               - Specific Relief Act
-
-            4. Family Law:
-               - Hindu Marriage Act
-               - Muslim Personal Law
-               - Special Marriage Act
-               - Hindu Succession Act
-               - Hindu Adoption and Maintenance Act
-               - Domestic Violence Act
-
-            5. Corporate and Commercial Law:
-               - Companies Act
-               - GST Laws
-               - Banking Regulations
-               - SEBI Guidelines
-               - IBC (Insolvency and Bankruptcy Code)
-
-            6. Labor and Employment Laws:
-               - Industrial Disputes Act
-               - Factories Act
-               - Employee Provident Fund
-               - Payment of Wages Act
-
-            7. Property Laws:
-               - Real Estate (Regulation and Development) Act
-               - Registration Act
-               - Indian Easements Act
-
-            8. Consumer Protection:
-               - Consumer Protection Act, 2019
-               - Product Liability
-               - Unfair Trade Practices
-
-            When responding:
-            1. First identify the relevant area of law for the query
-            2. Cite specific sections, acts, and landmark judgments when applicable
-            3. Explain legal concepts in clear, simple language
-            4. Provide practical steps or procedures when relevant
-            5. Reference recent amendments or changes in the law
-            6. Include relevant Supreme Court or High Court judgments
-            7. Mention limitation periods or deadlines if applicable
-            8. Explain the rights and obligations under the law
-
-            Important Guidelines:
-            - Begin responses with a clear identification of the legal issue
-            - Use proper legal terminology while explaining in simple terms
-            - Always mention relevant statutes and sections
-            - Include limitation periods where applicable
-            - Reference landmark cases that set precedents
-            - Explain both rights and remedies
-            - Mention jurisdiction and appropriate legal forum
-            - Provide practical next steps when relevant
-
-            Mandatory Disclaimer:
-            "While I provide legal information based on Indian law, this should be treated as general guidance. For specific legal matters, please consult a practicing advocate who can review your case details personally."
-
-            Use the provided search results to supplement your knowledge and provide up-to-date information."""
-
-            chat_completion = st.session_state.client.chat.completions.create(
+            completion: ChatCompletion = client.chat.completions.create(
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": f"Search results: {context}\n\nQuestion: {prompt}"}
                 ],
                 model="mixtral-8x7b-32768",
                 temperature=0.7,
-                timeout=30.0,
             )
-            return chat_completion.choices[0].message.content
+            return completion.choices[0].message.content
         except Exception as e:
             return f"Error getting response: {str(e)}"
 
