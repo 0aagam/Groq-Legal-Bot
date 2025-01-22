@@ -38,12 +38,11 @@ with st.sidebar:
                     st.session_state.client = client
                     st.session_state.api_key = api_key_input
                     st.success("API key successfully configured!")
-                except groq.error.AuthenticationError:
-                    st.error("Authentication failed. Please check your API key.")
-                    st.session_state.client = None
-                    st.session_state.api_key = None
                 except Exception as e:
-                    st.error(f"Error: {str(e)}")
+                    if "authentication" in str(e).lower():
+                        st.error("Authentication failed. Please check your API key.")
+                    else:
+                        st.error(f"Error: {str(e)}")
                     st.session_state.client = None
                     st.session_state.api_key = None
         else:
