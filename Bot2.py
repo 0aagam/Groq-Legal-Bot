@@ -25,8 +25,7 @@ with st.sidebar:
                 try:
                     # Test the API key by initializing the client
                     client = groq.Groq(
-                        api_key=api_key_input,
-                        timeout=60.0
+                        api_key=api_key_input
                     )
                     # Verify the API key works by making a small test request
                     test_response = client.chat.completions.create(
