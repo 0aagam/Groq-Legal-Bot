@@ -4,8 +4,8 @@ from duckduckgo_search import DDGS
 import os
 from typing import List
 
-# Initialize Groq client
-client = groq.Groq(api_key=os.getenv("GROQ_API_KEY"))
+# Get API key from Streamlit secrets
+client = groq.Groq(api_key=st.secrets["GROQ_API_KEY"])
 
 def search_duckduckgo(query: str, num_results: int = 3) -> List[str]:
     """
